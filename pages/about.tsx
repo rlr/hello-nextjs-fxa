@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../components/Header";
-import "../styles.scss";
+import "../styles/styles.scss";
 
 class About extends React.Component {
   render() {    

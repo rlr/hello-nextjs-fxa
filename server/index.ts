@@ -6,23 +6,15 @@ import ClientOAuth2 from "client-oauth2";
 import crypto from "crypto";
 import {URL} from "url";
 import got from "got";
+import constants from "./constants";
 
-const COOKIE_SECRET = "cookiesecretz";
-const OAUTH_CLIENT_ID = "e3c2bbf56bfec4f8";
-const OAUTH_CLIENT_SECRET = "b163cbd0f58cdbb3513fd091c16713bcce4f1d9bc59ca43a123758dc81104ce4";
-const ACCESS_TOKEN_URI = "https://oauth-stable.dev.lcip.org/v1/token";
-const AUTHORIZATION_URI = "https://oauth-stable.dev.lcip.org/v1/authorization";
-const PROFILE_URI = "https://stable.dev.lcip.org/profile/v1/profile";
-const port = parseInt(process.env.PORT || '3000', 10);
-const SERVER_URL = `http://localhost:${port}`;
-
-const dev = process.env.NODE_ENV !== 'production';
+const dev = constants.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 const server = express();
 
 server.use(session({
-  secret: COOKIE_SECRET,
+  secret: constants.COOKIE_SECRET,
   saveUninitialized: false,
   resave: false,
   cookie: {
@@ -34,11 +26,11 @@ server.use(session({
 
 const jsonParser = bodyParser.json();
 const FxAOAuthClient = new ClientOAuth2({
-  clientId: OAUTH_CLIENT_ID,
-  clientSecret: OAUTH_CLIENT_SECRET,
-  accessTokenUri: ACCESS_TOKEN_URI,
-  authorizationUri: AUTHORIZATION_URI,
-  redirectUri: SERVER_URL + "/oauth/return",
+  clientId: constants.OAUTH_CLIENT_ID,
+  clientSecret: constants.OAUTH_CLIENT_SECRET,
+  accessTokenUri: constants.OAUTH_ACCESS_TOKEN_URI,
+  authorizationUri: constants.OAUTH_AUTHORIZATION_URI,
+  redirectUri: constants.SERVER_URL + "/oauth/return",
   scopes: ["profile"],
 });
 
@@ -48,7 +40,7 @@ server.get("/oauth/init", jsonParser, (req, res) => {
   const state = crypto.randomBytes(40).toString("hex");
   req.session!.state = state;
   const url = new URL(FxAOAuthClient.code.getUri({state}));
-  const fxaParams = new URL(req.url, SERVER_URL);
+  const fxaParams = new URL(req.url, constants.SERVER_URL);
 
   url.searchParams.append("action", "signin");
 
@@ -72,7 +64,7 @@ server.get("/oauth/return", jsonParser, async (req, res) => {
   // Clear the session.state to clean up and avoid any replays
   req.session!.state = null;
 
-  const data = await got(PROFILE_URI, {
+  const data = await got(constants.OAUTH_PROFILE_URI, {
     headers: {
       Authorization: `Bearer ${fxaUser.accessToken}`,
     },
@@ -96,8 +88,8 @@ server.get('*', (req, res) => {
 (async () => {
   try {
       await app.prepare();
-      server.listen(port);
-      console.log(`> Ready on http://localhost:${port}`);
+      server.listen(constants.PORT);
+      console.log(`> Ready on http://localhost:${constants.PORT}`);
   }
   catch (err) {
       console.error(err.message);
