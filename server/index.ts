@@ -1,28 +1,25 @@
 import next from "next";
 import express from "express";
-import session from "express-session";
 import bodyParser from "body-parser";
 import ClientOAuth2 from "client-oauth2";
 import crypto from "crypto";
 import {URL} from "url";
 import got from "got";
 import constants from "./constants";
+import sessions from "client-sessions";
 
 const dev = constants.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 const server = express();
 
-server.use(session({
+server.use(sessions({
+  cookieName: "session",
   secret: constants.COOKIE_SECRET,
-  saveUninitialized: false,
-  resave: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 60 * 60 * 1000, // 60 minutes
-    // TODO: set cookie.secure = true in prod.
-  }
-}))
+  duration: 60 * 60 * 1000, // 60 minutes
+  activeDuration: 15 * 60 * 1000, // 15 minutes
+  cookie: {httpOnly: true, sameSite: "lax"},
+}));
 
 const jsonParser = bodyParser.json();
 const FxAOAuthClient = new ClientOAuth2({
