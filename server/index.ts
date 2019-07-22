@@ -28,7 +28,7 @@ const FxAOAuthClient = new ClientOAuth2({
   accessTokenUri: constants.OAUTH_ACCESS_TOKEN_URI,
   authorizationUri: constants.OAUTH_AUTHORIZATION_URI,
   redirectUri: constants.SERVER_URL + "/oauth/return",
-  scopes: ["profile"],
+  scopes: ["profile openid"],
 });
 
 server.get("/oauth/init", jsonParser, (req, res) => {
